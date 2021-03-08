@@ -6,6 +6,7 @@ library(stringr)
 library(tidyr)
 library(tibble)
 library(dplyr)
+library(tidytext)
 library(ggplot2)
 
 
@@ -84,17 +85,18 @@ countoword<-tidy_data %>% inner_join(bing) %>% count(word,sentiment,sort = TRUE)
 print(head(countoword))
 
 
-
-
-
 split<-countoword %>% filter(n>150) %>% mutate(n=ifelse(sentiment=="negative",-n,n)) %>% mutate(word = reorder(word, n))
 
 grapsplit<-ggplot(split,aes(word,n,fill=sentiment))+geom_col()+coord_flip()+labs(y="sentiment scr");
 print(split);
 print(grapsplit);
 
+library(wordcloud)
+library(reshape2)
 
-
+cloud<-tidy_data %>% inner_join(bing) %>% count(word,sentiment,sort = TRUE) %>% acast(word~sentiment,value.var="n",fill=0) %>% 
+  comparison.cloud(colors = c("Red","Blue"),max.words = 100)
+print(cloud)
 
 
 
