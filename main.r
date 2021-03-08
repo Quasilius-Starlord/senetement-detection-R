@@ -3,9 +3,10 @@
 
 library(janeaustenr)
 library(stringr)
-library(tidytext)
+library(tidyr)
 library(tibble)
 library(dplyr)
+library(ggplot2)
 
 
 ID <- c(1:50)
@@ -63,34 +64,34 @@ tidy_data <- austen_books() %>%
 #print(tidy_data)
 
 possentiment<-get_sentiments("bing") %>% filter(sentiment=="positive");
-print(tidy_data %>% filter(book=='Emma'))
+#print(tidy_data %>% filter(book=='Emma'))
 
-print(tidy_data %>% filter(book=='Emma') %>% semi_join(possentiment) %>% count(word,sort = TRUE))
-
-
+#print(tidy_data %>% filter(book=='Emma') %>% semi_join(possentiment) %>% count(word,sort = TRUE))
 
 
+bing<-get_sentiments(lexicon = "bing");
+emmasent<-tidy_data %>% inner_join(bing) %>% count(book="Emma",index=linenumber %/% 80,sentiment) %>% 
+  spread(sentiment,n,fill=0) %>% mutate(sentiment=positive-negative);
 
 
+#print(emmasent);
 
 
+barplt<-ggplot(emmasent,aes(index,sentiment,fill=book))+geom_bar(stat = "identity",show.legend = TRUE)+
+  facet_wrap(~book,ncol=2,scales = "free_x");
 
-
-
-
-
-
-
-
-
+countoword<-tidy_data %>% inner_join(bing) %>% count(word,sentiment,sort = TRUE);
+print(head(countoword))
 
 
 
 
 
+split<-countoword %>% filter(n>150) %>% mutate(n=ifelse(sentiment=="negative",-n,n)) %>% mutate(word = reorder(word, n))
 
-
-
+grapsplit<-ggplot(split,aes(word,n,fill=sentiment))+geom_col()+coord_flip()+labs(y="sentiment scr");
+print(split);
+print(grapsplit);
 
 
 
@@ -103,3 +104,4 @@ print(tidy_data %>% filter(book=='Emma') %>% semi_join(possentiment) %>% count(w
 #             n = n())
 
 #print(austen_books())
+
